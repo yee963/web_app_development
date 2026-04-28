@@ -1,73 +1,155 @@
-from . import get_db
+from . import get_db_connection
 
 class Ingredient:
     @staticmethod
-    def create(user_id, name, quantity, unit, type='inventory', is_bought=False):
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('''
-            INSERT INTO ingredients (user_id, name, quantity, unit, type, is_bought)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (user_id, name, quantity, unit, type, is_bought))
-        db.commit()
-        return cursor.lastrowid
+    def create(data):
+        """
+        新增一筆食材或購物清單記錄。
+        參數:
+            data (dict): 包含 user_id, name, quantity, unit, type 等欄位的字典
+        回傳:
+            int: 新增的記錄 ID，若失敗則回傳 None
+        """
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO ingredients (user_id, name, quantity, unit, type, is_bought)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                data.get('user_id'),
+                data.get('name'),
+                data.get('quantity'),
+                data.get('unit'),
+                data.get('type', 'inventory'),
+                data.get('is_bought', False)
+            ))
+            conn.commit()
+            return cursor.lastrowid
+        except Exception as e:
+            print(f"Ingredient.create error: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
 
     @staticmethod
     def get_by_id(ingredient_id):
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT * FROM ingredients WHERE id = ?', (ingredient_id,))
-        return cursor.fetchone()
+        """
+        根據 ID 取得單筆記錄。
+        參數:
+            ingredient_id (int): 記錄 ID
+        回傳:
+            sqlite3.Row: 記錄，找不到或失敗則回傳 None
+        """
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM ingredients WHERE id = ?', (ingredient_id,))
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Ingredient.get_by_id error: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
 
     @staticmethod
-    def get_inventory(user_id):
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT * FROM ingredients WHERE user_id = ? AND type = "inventory" ORDER BY created_at DESC', (user_id,))
-        return cursor.fetchall()
+    def get_all(user_id, type='inventory'):
+        """
+        取得特定使用者的食材庫存或購物清單。
+        參數:
+            user_id (int): 使用者 ID
+            type (str): 'inventory' 或 'shopping_list'
+        回傳:
+            list[sqlite3.Row]: 記錄列表
+        """
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            if type == 'shopping_list':
+                cursor.execute('SELECT * FROM ingredients WHERE user_id = ? AND type = ? ORDER BY is_bought ASC, created_at DESC', (user_id, type))
+            else:
+                cursor.execute('SELECT * FROM ingredients WHERE user_id = ? AND type = ? ORDER BY created_at DESC', (user_id, type))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Ingredient.get_all error: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
 
     @staticmethod
-    def get_shopping_list(user_id):
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT * FROM ingredients WHERE user_id = ? AND type = "shopping_list" ORDER BY is_bought ASC, created_at DESC', (user_id,))
-        return cursor.fetchall()
-
-    @staticmethod
-    def update(ingredient_id, name=None, quantity=None, unit=None, is_bought=None):
-        db = get_db()
-        cursor = db.cursor()
-        
-        # Build dynamic query based on provided fields
-        fields = []
-        values = []
-        if name is not None:
-            fields.append("name = ?")
-            values.append(name)
-        if quantity is not None:
-            fields.append("quantity = ?")
-            values.append(quantity)
-        if unit is not None:
-            fields.append("unit = ?")
-            values.append(unit)
-        if is_bought is not None:
-            fields.append("is_bought = ?")
-            values.append(is_bought)
+    def update(ingredient_id, data):
+        """
+        更新記錄。
+        參數:
+            ingredient_id (int): 記錄 ID
+            data (dict): 欲更新的欄位與值
+        回傳:
+            bool: 是否更新成功
+        """
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
             
-        if not fields:
+            fields = []
+            values = []
+            if 'name' in data:
+                fields.append("name = ?")
+                values.append(data['name'])
+            if 'quantity' in data:
+                fields.append("quantity = ?")
+                values.append(data['quantity'])
+            if 'unit' in data:
+                fields.append("unit = ?")
+                values.append(data['unit'])
+            if 'is_bought' in data:
+                fields.append("is_bought = ?")
+                values.append(data['is_bought'])
+            if 'type' in data:
+                fields.append("type = ?")
+                values.append(data['type'])
+                
+            if not fields:
+                return False
+                
+            query = f"UPDATE ingredients SET {', '.join(fields)} WHERE id = ?"
+            values.append(ingredient_id)
+            
+            cursor.execute(query, tuple(values))
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Ingredient.update error: {e}")
             return False
-            
-        query = f"UPDATE ingredients SET {', '.join(fields)} WHERE id = ?"
-        values.append(ingredient_id)
-        
-        cursor.execute(query, tuple(values))
-        db.commit()
-        return cursor.rowcount > 0
+        finally:
+            if conn:
+                conn.close()
 
     @staticmethod
     def delete(ingredient_id):
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('DELETE FROM ingredients WHERE id = ?', (ingredient_id,))
-        db.commit()
-        return cursor.rowcount > 0
+        """
+        刪除一筆記錄。
+        參數:
+            ingredient_id (int): 記錄 ID
+        回傳:
+            bool: 是否刪除成功
+        """
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM ingredients WHERE id = ?', (ingredient_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Ingredient.delete error: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()

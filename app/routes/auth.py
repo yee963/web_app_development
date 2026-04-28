@@ -1,26 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 bp = Blueprint('auth', __name__)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """
-    GET: 顯示註冊表單。
-    POST: 建立帳號，重導向至 /login。
-    """
-    pass
+    if request.method == 'POST':
+        flash('目前為 MVP 版本，已為您自動配置預設帳號，可以直接開始使用！', 'info')
+        return redirect(url_for('main.index'))
+    return render_template('register.html')
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """
-    GET: 顯示登入表單。
-    POST: 驗證身分，重導向至 /。
-    """
-    pass
+    if request.method == 'POST':
+        flash('登入成功！歡迎回來。', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('login.html')
 
 @bp.route('/logout', methods=['GET', 'POST'])
 def logout():
-    """
-    清除 Session，重導向至 /。
-    """
-    pass
+    flash('您已成功登出。', 'success')
+    return redirect(url_for('main.index'))

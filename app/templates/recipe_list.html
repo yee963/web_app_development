@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+    <h2 class="fw-bold m-0"><i class="fa-solid fa-book-open me-2 text-primary"></i>社群食譜牆</h2>
+    <a href="{{ url_for('main.index') }}" class="btn btn-outline-glass btn-sm"><i class="fa-solid fa-plus me-1"></i>建立新食譜</a>
+</div>
+
+<div class="row g-4">
+    {% for recipe in recipes %}
+    <div class="col-md-6 col-lg-4 fade-in-up delay-{{ loop.index0 * 100 % 400 }}">
+        <div class="glass-card h-100 d-flex flex-column" style="padding: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h4 class="fw-bold mb-0 text-truncate" title="{{ recipe.title }}">{{ recipe.title }}</h4>
+                {% if recipe.is_public %}
+                    <span class="badge bg-success rounded-pill px-2"><i class="fa-solid fa-earth-americas me-1"></i>公開</span>
+                {% else %}
+                    <span class="badge bg-secondary rounded-pill px-2"><i class="fa-solid fa-lock me-1"></i>私人</span>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge badge-glass text-warning"><i class="fa-solid fa-fire me-1"></i>{{ recipe.calories or '---' }} kcal</span>
+                <span class="badge badge-glass text-info">碳水 {{ recipe.carbs or '-' }}g</span>
+                <span class="badge badge-glass text-danger">蛋白 {{ recipe.protein or '-' }}g</span>
+            </div>
+            
+            <p class="text-secondary small text-truncate" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; white-space: normal;">
+                {{ recipe.instructions }}
+            </p>
+            
+            <div class="mt-auto d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                <small class="text-secondary"><i class="fa-regular fa-clock me-1"></i>{{ recipe.created_at[:10] if recipe.created_at else '' }}</small>
+                <a href="{{ url_for('recipe.detail', id=recipe.id) }}" class="btn btn-sm btn-primary-gradient px-3 rounded-pill">檢視作法</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5 fade-in-up delay-100">
+        <div class="glass-card">
+            <i class="fa-regular fa-folder-open fa-4x text-secondary mb-3 opacity-50"></i>
+            <h4 class="fw-bold text-secondary">目前還沒有公開的食譜</h4>
+            <p class="text-secondary">趕快去首頁輸入食材，成為第一個分享食譜的人吧！</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary-gradient mt-2">去生成食譜</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

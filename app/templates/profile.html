@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center fade-in-up">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card">
+            <div class="text-center mb-4">
+                <i class="fa-solid fa-user-gear fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold">個人口味設定</h2>
+                <p class="text-secondary">讓 AI 更了解你的喜好，為你量身打造專屬食譜。</p>
+            </div>
+            
+            <form action="{{ url_for('main.profile') }}" method="POST">
+                <div class="mb-4">
+                    <label for="dietary_preferences" class="form-label"><i class="fa-solid fa-leaf me-2 text-success"></i>飲食偏好</label>
+                    <input type="text" class="form-control" id="dietary_preferences" name="dietary_preferences" value="{{ user.dietary_preferences if user else '' }}" placeholder="例如：低碳水、生酮、素食、增肌減脂...">
+                    <div class="form-text text-secondary mt-2 small">這些偏好將作為 AI 生成食譜的重要考量。</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="disliked_ingredients" class="form-label"><i class="fa-solid fa-ban me-2 text-danger"></i>不吃的食材</label>
+                    <input type="text" class="form-control" id="disliked_ingredients" name="disliked_ingredients" value="{{ user.disliked_ingredients if user else '' }}" placeholder="例如：香菜, 牛肉, 茄子, 花生...">
+                    <div class="form-text text-secondary mt-2 small">請用逗號分隔，AI 將絕對避免使用這些食材。</div>
+                </div>
+                
+                <div class="d-grid mt-5">
+                    <button type="submit" class="btn btn-primary-gradient"><i class="fa-solid fa-floppy-disk me-2"></i>儲存設定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

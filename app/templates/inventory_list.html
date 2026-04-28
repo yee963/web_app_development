@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row fade-in-up">
+    <div class="col-md-4 mb-4">
+        <div class="glass-card position-sticky" style="top: 100px;">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-plus me-2 text-primary"></i>新增庫存食材</h4>
+            <form action="{{ url_for('inventory.update_inventory') }}" method="POST">
+                <div class="mb-3">
+                    <label for="name" class="form-label">食材名稱</label>
+                    <input type="text" class="form-control" id="name" name="name" required placeholder="例如：雞蛋">
+                </div>
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <label for="quantity" class="form-label">數量</label>
+                        <input type="text" class="form-control" id="quantity" name="quantity" placeholder="例如：2">
+                    </div>
+                    <div class="col-6">
+                        <label for="unit" class="form-label">單位</label>
+                        <input type="text" class="form-control" id="unit" name="unit" placeholder="例如：盒">
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary-gradient">新增至冰箱</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="glass-card">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-snowflake me-2 text-info"></i>冰箱庫存清單</h4>
+            
+            {% if items %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless align-middle" style="background: transparent;">
+                    <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <tr>
+                            <th>食材名稱</th>
+                            <th>數量/單位</th>
+                            <th>加入時間</th>
+                            <th class="text-end">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td class="fw-bold">{{ item.name }}</td>
+                            <td>{{ item.quantity or '' }} {{ item.unit or '' }}</td>
+                            <td class="text-secondary small">{{ item.created_at[:10] if item.created_at else '' }}</td>
+                            <td class="text-end">
+                                <form action="{{ url_for('inventory.delete_inventory', id=item.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle" title="刪除"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fa-regular fa-snowflake fa-4x text-secondary mb-3 opacity-50"></i>
+                <h5 class="text-secondary">冰箱目前空空如也</h5>
+                <p class="text-secondary small">在左側表單新增您買回來的食材吧！</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row align-items-center mb-5 fade-in-up">
+    <div class="col-lg-6 text-center text-lg-start mb-4 mb-lg-0">
+        <h1 class="display-4 fw-bold mb-3">清空冰箱，<br><span class="text-primary" style="background: linear-gradient(to right, #818cf8, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">聰明料理</span></h1>
+        <p class="lead text-secondary mb-4">告訴我們你還有什麼食材，讓 AI 幫你變出一道美味佳餚。省錢、健康、零浪費！</p>
+        <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
+            <a href="#generate-section" class="btn btn-primary-gradient px-4 py-2 rounded-pill"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>開始魔法</a>
+            <a href="{{ url_for('recipe.list_recipes') }}" class="btn btn-outline-glass px-4 py-2 rounded-pill">探索社群食譜</a>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="glass-card text-center p-5 delay-100">
+            <i class="fa-solid fa-bowl-food fa-5x mb-3" style="color: var(--secondary-color); opacity: 0.8;"></i>
+            <h3 class="fw-semibold">不知道今晚吃什麼？</h3>
+            <p class="text-secondary">輸入冰箱剩下的零碎食材，馬上獲得創意食譜。</p>
+        </div>
+    </div>
+</div>
+
+<div id="generate-section" class="row justify-content-center fade-in-up delay-200 mt-5">
+    <div class="col-md-8">
+        <div class="glass-card">
+            <h3 class="mb-4 text-center fw-bold"><i class="fa-solid fa-basket-shopping me-2 text-primary"></i>你有哪些食材？</h3>
+            <form action="{{ url_for('recipe.generate') }}" method="POST">
+                <div class="mb-4">
+                    <label for="ingredients" class="form-label">請輸入食材 (用逗號或空格分隔)</label>
+                    <textarea class="form-control" id="ingredients" name="ingredients" rows="4" placeholder="例如：雞胸肉 2片, 雞蛋 2顆, 半顆洋蔥, 高麗菜..." required></textarea>
+                </div>
+                
+                <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                    <h6 class="fw-bold mb-2"><i class="fa-solid fa-sliders me-2"></i>你的個人偏好會被納入考量：</h6>
+                    {% if user %}
+                        <p class="mb-1 text-secondary small">
+                            <span class="badge badge-glass me-1">飲食偏好</span> {{ user.dietary_preferences or '無特定偏好' }}
+                        </p>
+                        <p class="mb-0 text-secondary small">
+                            <span class="badge badge-glass border-danger text-danger me-1">不吃</span> {{ user.disliked_ingredients or '無禁忌' }}
+                        </p>
+                        <div class="mt-2">
+                            <a href="{{ url_for('main.profile') }}" class="text-decoration-none small text-primary">修改偏好設定</a>
+                        </div>
+                    {% else %}
+                        <p class="mb-0 text-secondary small">目前未登入，將使用一般大眾口味。 <a href="{{ url_for('auth.login') }}" class="text-primary">登入以設定偏好</a></p>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary-gradient btn-lg">
+                        <i class="fa-solid fa-fire-burner me-2"></i>生成專屬食譜
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
